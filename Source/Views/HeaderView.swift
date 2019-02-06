@@ -6,17 +6,37 @@ protocol HeaderViewDelegate: class {
 }
 
 open class HeaderView: UIView {
+    private var title: String? = nil
+    
+    open fileprivate(set) lazy var titleLabel: UILabel = { [unowned self] in
+        let title = NSAttributedString(
+            string: self.title ?? "",
+            attributes: LightboxConfig.CloseButton.textAttributes)
+        
+        let label = UILabel()
+        label.attributedText = title
+        label.sizeToFit()
+        
+        return label
+        }()
+    
   open fileprivate(set) lazy var closeButton: UIButton = { [unowned self] in
     let title = NSAttributedString(
       string: LightboxConfig.CloseButton.text,
       attributes: LightboxConfig.CloseButton.textAttributes)
 
     let button = UIButton(type: .system)
-
     button.setAttributedTitle(title, for: UIControl.State())
 
+    var topPadding: CGFloat = 0
+    if #available(iOS 11, *) {
+        topPadding = UIApplication.shared.keyWindow!.safeAreaInsets.top
+    } else {
+        topPadding = UIApplication.shared.statusBarFrame.height
+    }
+    
     if let size = LightboxConfig.CloseButton.size {
-      button.frame.size = size
+        button.frame.size = CGSize(width: size.width, height: size.height + topPadding)
     } else {
       button.sizeToFit()
     }
@@ -25,7 +45,8 @@ open class HeaderView: UIView {
       for: .touchUpInside)
 
     if let image = LightboxConfig.CloseButton.image {
-        button.setBackgroundImage(image, for: UIControl.State())
+        button.setImage(image, for: UIControl.State())
+//        button.setBackgroundImage(image, for: UIControl.State())
     }
 
     button.isHidden = !LightboxConfig.CloseButton.enabled
@@ -39,11 +60,17 @@ open class HeaderView: UIView {
       attributes: LightboxConfig.DeleteButton.textAttributes)
 
     let button = UIButton(type: .system)
-
     button.setAttributedTitle(title, for: .normal)
 
+    var topPadding: CGFloat = 0
+    if #available(iOS 11, *) {
+        topPadding = UIApplication.shared.keyWindow!.safeAreaInsets.top
+    } else {
+        topPadding = UIApplication.shared.statusBarFrame.height
+    }
+    
     if let size = LightboxConfig.DeleteButton.size {
-      button.frame.size = size
+      button.frame.size = CGSize(width: size.width, height: size.height + topPadding)
     } else {
       button.sizeToFit()
     }
@@ -64,12 +91,13 @@ open class HeaderView: UIView {
 
   // MARK: - Initializers
 
-  public init() {
+  public init(title: String? = nil) {
     super.init(frame: CGRect.zero)
+    self.title = title
 
     backgroundColor = UIColor.clear
 
-    [closeButton, deleteButton].forEach { addSubview($0) }
+    [titleLabel, closeButton, deleteButton].forEach { addSubview($0) }
   }
 
   public required init?(coder aDecoder: NSCoder) {
@@ -101,13 +129,16 @@ extension HeaderView: LayoutConfigurable {
     }
 
     closeButton.frame.origin = CGPoint(
-      x: bounds.width - closeButton.frame.width - 17,
-      y: topPadding
+      x: 0,
+      y: 0
     )
 
     deleteButton.frame.origin = CGPoint(
-      x: 17,
+      x: bounds.width - closeButton.frame.width - 17,
       y: topPadding
     )
+    
+    titleLabel.center.x = center.x
+    titleLabel.center.y = closeButton.center.y
   }
 }
