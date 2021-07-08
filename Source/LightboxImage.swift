@@ -1,5 +1,4 @@
 import UIKit
-import Imaginary
 
 open class LightboxImage {
 

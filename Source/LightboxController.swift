@@ -166,6 +166,10 @@ open class LightboxController: UIViewController {
   open override func viewDidLoad() {
     super.viewDidLoad()
 
+    // 9 July 2020: @3lvis
+    // Lightbox hasn't been optimized to be used in presentation styles other than fullscreen.
+    modalPresentationStyle = .fullScreen
+    
     statusBarHidden = UIApplication.shared.isStatusBarHidden
 
     view.backgroundColor = UIColor.black
@@ -179,14 +183,6 @@ open class LightboxController: UIViewController {
     configurePages(initialImages)
 
     goTo(initialPage, animated: false)
-  }
-
-  open override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    if !presented {
-      presented = true
-      configureLayout(view.bounds.size)
-    }
   }
 
   open override func viewDidLayoutSubviews() {
@@ -209,6 +205,11 @@ open class LightboxController: UIViewController {
       width: view.bounds.width,
       height: 100
     )
+    
+    if !presented {
+      presented = true
+      configureLayout(view.bounds.size)
+    }
   }
 
   open override var prefersStatusBarHidden: Bool {
@@ -436,6 +437,7 @@ extension LightboxController: HeaderViewDelegate {
       currentPage -= 1
     }
 
+    self.initialImages.remove(at: prevIndex)
     self.pageViews.remove(at: prevIndex).removeFromSuperview()
 
     DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.5) {
