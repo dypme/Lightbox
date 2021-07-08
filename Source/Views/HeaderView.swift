@@ -103,7 +103,7 @@ open class HeaderView: UIView {
 
     backgroundColor = UIColor.clear
 
-    [titleLabel, closeButton, deleteButton, saveButton].forEach { addSubview($0) }
+    [closeButton, deleteButton, saveButton].forEach { addSubview($0) }
   }
 
   public required init?(coder aDecoder: NSCoder) {
