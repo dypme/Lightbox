@@ -1,6 +1,7 @@
 import UIKit
 
 protocol HeaderViewDelegate: class {
+  func headerView(_ headerView: HeaderView, didPressSaveButton saveButton: UIButton)
   func headerView(_ headerView: HeaderView, didPressDeleteButton deleteButton: UIButton)
   func headerView(_ headerView: HeaderView, didPressCloseButton closeButton: UIButton)
 }
@@ -86,6 +87,39 @@ open class HeaderView: UIView {
 
     return button
   }()
+    
+  open fileprivate(set) lazy var saveButton: UIButton = { [unowned self] in
+    let title = NSAttributedString(
+      string: LightboxConfig.SaveButton.text,
+      attributes: LightboxConfig.SaveButton.textAttributes)
+
+    let button = UIButton(type: .system)
+    button.setAttributedTitle(title, for: .normal)
+
+    var topPadding: CGFloat = 0
+    if #available(iOS 11, *) {
+        topPadding = UIApplication.shared.keyWindow!.safeAreaInsets.top
+    } else {
+        topPadding = UIApplication.shared.statusBarFrame.height
+    }
+      
+    if let size = LightboxConfig.SaveButton.size {
+        button.frame.size = CGSize(width: size.width, height: size.height + topPadding)
+    } else {
+        button.sizeToFit()
+    }
+
+    button.addTarget(self, action: #selector(saveButtonDidPress(_:)),
+                     for: .touchUpInside)
+
+    if let image = LightboxConfig.SaveButton.image {
+        button.setBackgroundImage(image, for: UIControl.State())
+    }
+
+    button.isHidden = !LightboxConfig.isEnableEditInfo
+
+    return button
+  }()
 
   weak var delegate: HeaderViewDelegate?
 
@@ -97,7 +131,7 @@ open class HeaderView: UIView {
 
     backgroundColor = UIColor.clear
 
-    [titleLabel, closeButton, deleteButton].forEach { addSubview($0) }
+    [titleLabel, closeButton, deleteButton, saveButton].forEach { addSubview($0) }
   }
 
   public required init?(coder aDecoder: NSCoder) {
@@ -106,6 +140,10 @@ open class HeaderView: UIView {
 
   // MARK: - Actions
 
+  @objc func saveButtonDidPress(_ button: UIButton) {
+    delegate?.headerView(self, didPressSaveButton: button)
+  }
+    
   @objc func deleteButtonDidPress(_ button: UIButton) {
     delegate?.headerView(self, didPressDeleteButton: button)
   }
@@ -129,12 +167,17 @@ extension HeaderView: LayoutConfigurable {
     }
 
     closeButton.frame.origin = CGPoint(
-      x: 0,
-      y: 0
+      x: 17,
+      y: topPadding
     )
 
     deleteButton.frame.origin = CGPoint(
-      x: bounds.width - closeButton.frame.width - 17,
+      x: bounds.width - deleteButton.frame.width - 17 - (LightboxConfig.isEnableEditInfo ? saveButton.frame.width + 17 : 0),
+      y: topPadding
+    )
+    
+    saveButton.frame.origin = CGPoint(
+      x: bounds.width - saveButton.frame.width - 17,
       y: topPadding
     )
     
