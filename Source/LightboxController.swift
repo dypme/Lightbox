@@ -10,9 +10,11 @@ public protocol LightboxControllerDismissalDelegate: class {
   func lightboxControllerWillDismiss(_ controller: LightboxController)
 }
 
-public protocol LightboxControllerTouchDelegate: class {
+public protocol LightboxControllerActionDelegate: class {
 
   func lightboxController(_ controller: LightboxController, didTouch image: LightboxImage, at index: Int)
+  func lightboxController(_ controller: LightboxController, didDelete image: LightboxImage, at index: Int)
+  func lightboxController(_ controller: LightboxController, didSaveChanged images: [LightboxImage])
 }
 
 open class LightboxController: UIViewController {
@@ -79,6 +81,8 @@ open class LightboxController: UIViewController {
   }()
 
   // MARK: - Properties
+  private var keyboardHelper: KeyboardHelper?
+  private var keyboardHeight: CGFloat = 0
 
   open fileprivate(set) var currentPage = 0 {
     didSet {
@@ -89,6 +93,8 @@ open class LightboxController: UIViewController {
       if currentPage == numberOfPages - 1 {
         seen = true
       }
+
+      viewDidLayoutSubviews()
 
       reconfigurePagesForPreload()
 
@@ -138,7 +144,7 @@ open class LightboxController: UIViewController {
 
   open weak var pageDelegate: LightboxControllerPageDelegate?
   open weak var dismissalDelegate: LightboxControllerDismissalDelegate?
-  open weak var imageTouchDelegate: LightboxControllerTouchDelegate?
+  open weak var imageActionDelegate: LightboxControllerActionDelegate?
   open internal(set) var presented = false
   open fileprivate(set) var seen = false
 
@@ -155,6 +161,8 @@ open class LightboxController: UIViewController {
     self.initialImages = images
     self.initialPage = index
     super.init(nibName: nil, bundle: nil)
+
+    self.modalPresentationStyle = .fullScreen
   }
 
   public required init?(coder aDecoder: NSCoder) {
@@ -172,6 +180,16 @@ open class LightboxController: UIViewController {
     
     statusBarHidden = UIApplication.shared.isStatusBarHidden
 
+    keyboardHelper = KeyboardHelper { [unowned self] animation, keyboardFrame, duration in
+      switch animation {
+        case .keyboardWillShow:
+            self.keyboardHeight = keyboardFrame.height
+        case .keyboardWillHide:
+            self.keyboardHeight = 0
+        }
+        self.viewDidLayoutSubviews()
+      }
+
     view.backgroundColor = UIColor.black
     transitionManager.lightboxController = self
     transitionManager.scrollView = scrollView
@@ -188,15 +206,20 @@ open class LightboxController: UIViewController {
   open override func viewDidLayoutSubviews() {
     super.viewDidLayoutSubviews()
 
+    var bottomSafeInset: CGFloat = 0
+    if #available(iOS 11.0, *), keyboardHeight <= 0 {
+      bottomSafeInset = view.safeAreaInsets.bottom
+    }
+
     scrollView.frame = view.bounds
     footerView.frame.size = CGSize(
       width: view.bounds.width,
-      height: 100
+      height: LightboxConfig.isEnableEditInfo ? (footerView.infoField.frame.height + 40 + bottomSafeInset) : 100
     )
 
     footerView.frame.origin = CGPoint(
       x: 0,
-      y: view.bounds.height - footerView.frame.height
+      y: view.bounds.height - footerView.frame.height - keyboardHeight
     )
 
     headerView.frame = CGRect(
@@ -244,7 +267,7 @@ open class LightboxController: UIViewController {
 
     configureLayout(view.bounds.size)
   }
-
+    
   func reconfigurePagesForPreload() {
     let preloadIndicies = calculatePreloadIndicies()
 
@@ -406,9 +429,14 @@ extension LightboxController: PageViewDelegate {
   }
 
   func pageViewDidTouch(_ pageView: PageView) {
+    if keyboardHeight > 0 {
+      view.endEditing(true)
+      return
+    }
+
     guard !pageView.hasZoomed else { return }
 
-    imageTouchDelegate?.lightboxController(self, didTouch: images[currentPage], at: currentPage)
+    imageActionDelegate?.lightboxController(self, didTouch: images[currentPage], at: currentPage)
 
     let visible = (headerView.alpha == 1.0)
     toggleControls(pageView: pageView, visible: !visible)
@@ -419,9 +447,16 @@ extension LightboxController: PageViewDelegate {
 
 extension LightboxController: HeaderViewDelegate {
 
+  func headerView(_ headerView: HeaderView, didPressSaveButton saveButton: UIButton) {
+    imageActionDelegate?.lightboxController(self, didSaveChanged: self.initialImages)
+    self.headerView(headerView, didPressCloseButton: headerView.saveButton)
+  }
+    
   func headerView(_ headerView: HeaderView, didPressDeleteButton deleteButton: UIButton) {
     deleteButton.isEnabled = false
 
+    imageActionDelegate?.lightboxController(self, didDelete: self.initialImages[currentPage], at: currentPage)
+    
     guard numberOfPages != 1 else {
       pageViews.removeAll()
       self.headerView(headerView, didPressCloseButton: headerView.closeButton)
@@ -430,6 +465,8 @@ extension LightboxController: HeaderViewDelegate {
 
     let prevIndex = currentPage
 
+    self.initialImages.remove(at: prevIndex)
+        
     if currentPage == numberOfPages - 1 {
       previous()
     } else {
@@ -464,5 +501,10 @@ extension LightboxController: FooterViewDelegate {
       self.overlayView.alpha = expanded ? 1.0 : 0.0
       self.headerView.deleteButton.alpha = expanded ? 0.0 : 1.0
     })
+  }
+
+  public func footerView(_ footerView: FooterView, updateText text: String) {
+    pageViews[currentPage].image.text = text
+    viewDidLayoutSubviews()
   }
 }

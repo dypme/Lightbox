@@ -5,6 +5,7 @@ import AVFoundation
 public class LightboxConfig {
   /// Whether to show status bar while Lightbox is presented
   public static var hideStatusBar = true
+  public static var isEnableEditInfo = false
 
   /// Provide a closure to handle selected video
   public static var handleVideo: (_ from: UIViewController, _ videoURL: URL) -> Void = { from, videoURL in
@@ -90,6 +91,22 @@ public class LightboxConfig {
     public static var textAttributes: [NSAttributedString.Key: Any] = [
       .font: UIFont.boldSystemFont(ofSize: 16),
       .foregroundColor: UIColor(hex: "FA2F5B"),
+      .paragraphStyle: {
+        var style = NSMutableParagraphStyle()
+        style.alignment = .center
+        return style
+      }()
+    ]
+  }
+    
+  public struct SaveButton {
+    public static var size: CGSize?
+    public static var text = NSLocalizedString("Save", comment: "")
+    public static var image: UIImage?
+
+    public static var textAttributes: [NSAttributedString.Key: Any] = [
+      .font: UIFont.boldSystemFont(ofSize: 16),
+      .foregroundColor: UIColor.white,
       .paragraphStyle: {
         var style = NSMutableParagraphStyle()
         style.alignment = .center
