@@ -1,16 +1,16 @@
 import UIKit
 
-public protocol LightboxControllerPageDelegate: class {
+public protocol LightboxControllerPageDelegate: AnyObject {
 
   func lightboxController(_ controller: LightboxController, didMoveToPage page: Int)
 }
 
-public protocol LightboxControllerDismissalDelegate: class {
+public protocol LightboxControllerDismissalDelegate: AnyObject {
 
   func lightboxControllerWillDismiss(_ controller: LightboxController)
 }
 
-public protocol LightboxControllerActionDelegate: class {
+public protocol LightboxControllerActionDelegate: AnyObject {
 
   func lightboxController(_ controller: LightboxController, didTouch image: LightboxImage, at index: Int)
   func lightboxController(_ controller: LightboxController, didDelete image: LightboxImage, at index: Int)

@@ -3,7 +3,7 @@
 
 import UIKit
 
-public protocol InfoFieldDelegate: class {
+public protocol InfoFieldDelegate: AnyObject {
 
   func infoFieldDidChange(_ infoField: InfoField)
 }
