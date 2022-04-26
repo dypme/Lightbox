@@ -5,6 +5,8 @@
 //  Created by Crocodic-MBP2017 on 08/07/21.
 //
 
+import UIKit
+
 extension KeyboardHelper {
     enum Animation {
         case keyboardWillShow
