@@ -1,5 +1,5 @@
 PODS:
-  - Lightbox (2.5.0)
+  - Lightbox (2.6.1)
 
 DEPENDENCIES:
   - Lightbox (from `../../`)
@@ -9,8 +9,8 @@ EXTERNAL SOURCES:
     :path: "../../"
 
 SPEC CHECKSUMS:
-  Lightbox: fb4d1c8ee4a108b4d59b47f97d9bcf851b04654a
+  Lightbox: 6ba09c9fd7770cade809a3425bd4a63b681e8f8e
 
 PODFILE CHECKSUM: c0cbd6893caca14fe9dfb1e24102e0c3fd0d8fae
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.16.2

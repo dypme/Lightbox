@@ -224,7 +224,7 @@ open class LightboxController: UIViewController {
 
     headerView.frame = CGRect(
       x: 0,
-      y: 16,
+      y: view.safeAreaInsets.top,
       width: view.bounds.width,
       height: 100
     )
@@ -237,6 +237,10 @@ open class LightboxController: UIViewController {
 
   open override var prefersStatusBarHidden: Bool {
     return LightboxConfig.hideStatusBar
+  }
+    
+  open override var preferredStatusBarStyle: UIStatusBarStyle {
+      return .lightContent
   }
 
   // MARK: - Rotation
