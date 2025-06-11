@@ -238,10 +238,6 @@ open class LightboxController: UIViewController {
   open override var prefersStatusBarHidden: Bool {
     return LightboxConfig.hideStatusBar
   }
-    
-  open override var preferredStatusBarStyle: UIStatusBarStyle {
-      return .lightContent
-  }
 
   // MARK: - Rotation
 
